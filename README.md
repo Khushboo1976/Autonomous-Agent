@@ -49,6 +49,7 @@ This project simulates an autonomous customer support system capable of:
 ## 🏗️ Architecture
 
 The system follows a **layered architecture**:
+![Architecture Diagram](architecture.png)
 
 ### 1. Frontend Layer
 - Streamlit UI for user interaction
