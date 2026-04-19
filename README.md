@@ -1,4 +1,5 @@
 # 🤖 Autonomous Support Agent
+📄 Resume: [View Resume](https://drive.google.com/uc?export=view&id=1c4fee6qOrX5RnAH-jiqsnqoYNYKdUmJ2)
 
 An intelligent, production-ready AI agent that processes customer support tickets using **tool-based reasoning, policy-driven decisions, and real-world business logic**.
 
