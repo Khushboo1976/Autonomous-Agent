@@ -78,6 +78,36 @@ The system follows a **layered architecture**:
   - Errors
 
 ---
+## 🚀 Deployment
+
+This project is deployed on Render.
+
+### 🔧 Setup Instructions
+
+1. Clone the repository
+2. Install dependencies:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Run the app:
+
+   ```bash
+   streamlit run app.py
+   ```
+
+### 🌐 Live Demo
+
+👉 [[Add your Render link here]](https://autonomous-agent-swis.onrender.com/)
+
+---
+
+### ⚠️ Note
+
+If deployment fails, ensure that:
+
+* `requirements.txt` is present in the root directory
+* All dependencies are correctly listed
 
 ## ⚙️ Installation & Setup
 
