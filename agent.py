@@ -55,13 +55,13 @@ def classify_ticket(message):
 
 # 🔹 Safe tool call with retry (BONUS 🚀)
 def safe_tool_call(func, *args):
-    last_error = None
     for _ in range(2):
         try:
             return func(*args)
-        except Exception as e:
-            last_error = str(e)
-    raise Exception(f"Tool failed after retries: {last_error}")
+        except Exception:
+            continue
+    
+    return None   # 🔥 DO NOT RAISE EXCEPTION
 
 
 def process_ticket(ticket):
@@ -120,6 +120,24 @@ def process_ticket(ticket):
         if not order_id:
             try:
                 customer = safe_tool_call(get_customer, ticket["customer_email"])
+
+                # 🔥 HANDLE NULL CUSTOMER FIRST
+                if not customer:
+                    log["errors"].append("Customer not found")
+
+                    log["user_message"] = "We could not find any orders associated with your email. Please provide your order ID (e.g., ORD-1001)."
+                    
+                    send_reply(ticket["ticket_id"], log["user_message"])
+                    log["steps"].append("send_reply")
+
+                    log["result"] = "failed"
+                    log["reason"] = "Customer not found"
+                    log["confidence"] = calculate_confidence(log["result"], log["errors"])
+                    log["resolvable"] = False
+
+                    return log
+
+                # ✅ SAFE TO USE CUSTOMER NOW
                 log["steps"].append("get_customer")
 
                 customer_orders = [
@@ -173,20 +191,52 @@ def process_ticket(ticket):
             return log
 
         customer = safe_tool_call(get_customer, ticket["customer_email"])
+
         if not customer or "email" not in customer:
-            raise Exception("Invalid customer data")
-        
+            log["errors"].append("Customer not found or invalid")
+
+            summary = {
+                "intent": intent,
+                "issue": message,
+                "decision": "Customer not found",
+                "steps_taken": log["steps"]
+            }
+
+            escalate(ticket["ticket_id"], summary, "medium")
+            log["escalation_summary"] = summary
+
+            log["result"] = "escalated"
+            log["confidence"] = 0.5
+            return log
+
         log["steps"].append("get_customer")
         customer_tier = customer.get("tier", "standard")
         customer_notes = customer.get("notes", "")
         customer_name = customer.get("name", "Customer") 
         log["steps"].append(f"customer_tier:{customer_tier}")
-
+        
         product = safe_tool_call(get_product, order["product_id"])
+
         if not product or "name" not in product:
-            raise Exception("Invalid product data")
+            log["errors"].append("Product not found or invalid")
+
+            summary = {
+                "intent": intent,
+                "issue": message,
+                "decision": "Product not found",
+                "steps_taken": log["steps"]
+            }
+
+            escalate(ticket["ticket_id"], summary, "medium")
+            log["escalation_summary"] = summary
+
+            log["result"] = "escalated"
+            log["confidence"] = 0.5
+            return log
 
         log["steps"].append("get_product")
+        product_name = product.get("name", "product")
+
         product_name = product.get("name", "product")
 
         # ===========================
@@ -893,3 +943,4 @@ def process_ticket(ticket):
             log["confidence"] = calculate_confidence(log["result"], log["errors"])
 
     return log
+
