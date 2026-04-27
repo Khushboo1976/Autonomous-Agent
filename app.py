@@ -85,6 +85,10 @@ if st.session_state.results:
     else:
         st.error("❌ Failed")
 
+    if selected_data["result"] == "escalated":
+        st.write("### 🧾 Escalation Summary")
+        st.json(selected_data.get("escalation_summary", {}))
+
     if selected_data["result"] == "failed":
         st.write("### 💬 Reason")
         st.error(selected_data.get("reason", ""))
