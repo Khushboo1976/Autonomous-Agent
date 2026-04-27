@@ -101,8 +101,33 @@ This project is deployed on Render.
 
 👉 [[Add your Render link here]](https://autonomous-agent-swis.onrender.com/)
 
+## 🚀 Live Demo Video
+
+👉 🎥 **Watch the Demo Video:**  
+[Click here to view the demo](https://drive.google.com/file/d/1mcGg8OshIf6_VtFdI6vXKMcNZkd8LBEt/view?usp=sharing)
+
 ---
 
+## 📌 Evaluation Criteria Alignment
+
+This project was built keeping in mind:
+
+- **Architecture** → Modular agent + tool system  
+- **Resilience** → Retry logic + failure handling  
+- **Impact** → Real-world customer support automation  
+
+---
+
+## 🙌 Acknowledgment
+
+Built during the **Ksolves Agentic AI Hackathon 2026**  
+as part of exploring real-world autonomous systems.
+
+---
+
+## 💬 Feedback
+
+Open to feedback, suggestions, and improvements!
 ### ⚠️ Note
 
 If deployment fails, ensure that:
@@ -122,3 +147,4 @@ pip install -r requirements.txt
  .\.venv\Scripts\activate
 # Run app
 streamlit run app.py
+
