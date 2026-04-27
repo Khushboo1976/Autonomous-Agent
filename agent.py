@@ -26,7 +26,7 @@ def handle_high_value_refund(order, ticket, log, intent, customer_tier, message,
 
         escalate(ticket["ticket_id"], summary, "high")
         log["steps"].append("escalate")
-
+        log["escalation_summary"] = summary
         log["result"] = "escalated"
         log["reason"] = "High value refund (>200)"
         log["decision"] = "Escalated for manual approval"
@@ -55,12 +55,13 @@ def classify_ticket(message):
 
 # 🔹 Safe tool call with retry (BONUS 🚀)
 def safe_tool_call(func, *args):
+    last_error = None
     for _ in range(2):
         try:
             return func(*args)
-        except:
-            continue
-    raise Exception("Tool failed after retries")
+        except Exception as e:
+            last_error = str(e)
+    raise Exception(f"Tool failed after retries: {last_error}")
 
 
 def process_ticket(ticket):
@@ -103,8 +104,8 @@ def process_ticket(ticket):
         kb_result = search_knowledge_base(message)
         log["steps"].append("search_knowledge_base")
         log["kb_result"] = kb_result
-    except:
-        log["errors"].append("KB search failed")
+    except Exception as e:
+        log["errors"].append(f"KB error: {str(e)}")
 
     try:
         # STEP 1: CLASSIFY
@@ -267,10 +268,14 @@ def process_ticket(ticket):
         # KB-BASED DECISION LOGIC
         warranty_months = product.get("warranty_months", 0)
         today = date.today()
-        if "return_deadline" in order:
-            return_deadline_date = datetime.fromisoformat(order["return_deadline"]).date()
+
+        if "return_deadline" in order and isinstance(order["return_deadline"], str):
+            try:
+                return_deadline_date = datetime.fromisoformat(order["return_deadline"]).date()
+            except:
+                return_deadline_date = today
         else:
-            return_deadline_date = today  # default
+            return_deadline_date = today
 
         # ===========================
         # 📦 CASE: ORDER STATUS
@@ -329,7 +334,7 @@ def process_ticket(ticket):
 
                 escalate(ticket["ticket_id"], summary, "high")
                 log["steps"].append("escalate")
-
+                log["escalation_summary"] = summary
                 log["result"] = "escalated"
                 log["reason"] = "Refund tool failure"
                 log["decision"] = "Escalated due to refund system failure"
@@ -362,6 +367,7 @@ def process_ticket(ticket):
                 "steps_taken": log["steps"]
             }
             escalate(ticket["ticket_id"], summary, "high")
+            log["escalation_summary"] = summary
             log["steps"].append("escalate")
             log["result"] = "escalated"
             log["reason"] = "Warranty claim"
@@ -423,6 +429,7 @@ def process_ticket(ticket):
                     }
 
                     escalate(ticket["ticket_id"], summary, "high")
+                    log["escalation_summary"] = summary
                     log["steps"].append("escalate")
 
                     log["result"] = "escalated"
@@ -472,6 +479,7 @@ def process_ticket(ticket):
                     }
 
                     escalate(ticket["ticket_id"], summary, "high")
+                    log["escalation_summary"] = summary
                     log["steps"].append("escalate")
 
                     log["result"] = "escalated"
@@ -528,6 +536,7 @@ def process_ticket(ticket):
                     }
 
                     escalate(ticket["ticket_id"], summary, "high")
+                    log["escalation_summary"] = summary
                     log["steps"].append("escalate")
 
                     log["result"] = "escalated"
@@ -598,6 +607,7 @@ def process_ticket(ticket):
                         }
 
                         escalate(ticket["ticket_id"], summary, "high")
+                        log["escalation_summary"] = summary
                         log["steps"].append("escalate")
 
                         log["result"] = "escalated"
@@ -646,6 +656,7 @@ def process_ticket(ticket):
                         }
 
                         escalate(ticket["ticket_id"], summary, "high")
+                        log["escalation_summary"] = summary
                         log["steps"].append("escalate")
 
                         log["result"] = "escalated"
@@ -701,6 +712,7 @@ def process_ticket(ticket):
                         }
 
                         escalate(ticket["ticket_id"], summary, "high")
+                        log["escalation_summary"] = summary
                         log["steps"].append("escalate")
 
                         log["result"] = "escalated"
@@ -752,6 +764,7 @@ def process_ticket(ticket):
                         }
 
                         escalate(ticket["ticket_id"], summary, "high")
+                        log["escalation_summary"] = summary
                         log["steps"].append("escalate")
 
                         log["result"] = "escalated"
@@ -804,7 +817,7 @@ def process_ticket(ticket):
 
             try:
                 kb = log.get("kb_result", "")
-                log["steps"].append("search_knowledge_base")
+    
             except Exception as e:
                 log["errors"].append(str(e))
                 kb = "We are unable to fetch the answer right now. Our team will assist you shortly."
@@ -838,6 +851,7 @@ def process_ticket(ticket):
                 "steps_taken": log["steps"]
         }
         escalate(ticket["ticket_id"], summary, "high")
+        log["escalation_summary"] = summary
         log["steps"].append("escalate")
 
         log["result"] = "escalated"  # Changed to escalated for system issues
