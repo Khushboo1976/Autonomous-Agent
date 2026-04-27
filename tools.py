@@ -23,7 +23,9 @@ def get_customer(email):
     for customer in customers:
         if customer["email"] == email:
             return customer
-    raise Exception("Customer not found")
+    
+    # 🔥 Instead of crashing → return None
+    return None
 
 
 def get_product(product_id):
