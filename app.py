@@ -1,6 +1,7 @@
 import streamlit as st
 import datetime
 import json
+import os   # ✅ NEW
 from agent import process_ticket
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor
@@ -49,7 +50,7 @@ if st.session_state.results:
     st.subheader("📊 Ticket Summary")
     st.dataframe(df[["ticket_id", "result", "confidence", "category"]])
 
-    # Select ticket - FIXED
+    # Select ticket
     ticket_ids = sorted({r["ticket_id"] for r in results})
     selected_ticket = st.selectbox(
         "Select Ticket to Inspect",
@@ -57,7 +58,6 @@ if st.session_state.results:
         key="ticket_selector"
     )
 
-    # FIXED data selection
     selected_data = [r for r in results if r["ticket_id"] == selected_ticket]
     if selected_data:
         selected_data = selected_data[0]
@@ -99,10 +99,19 @@ if st.session_state.results:
     if selected_data["errors"]:
         st.error(selected_data["errors"])
 
-    # Save log
-    with open("logs/audit_log.json", "w") as f:
-        json.dump(results, f, indent=4)
+    # ===========================
+    # ✅ SAFE LOG SAVE (FIXED)
+    # ===========================
+    try:
+        os.makedirs("logs", exist_ok=True)   # 🔥 IMPORTANT FIX
 
+        with open("logs/audit_log.json", "w") as f:
+            json.dump(results, f, indent=4)
+
+    except Exception as e:
+        st.warning(f"Logging failed: {e}")
+
+    # Download button
     st.download_button(
         label="📥 Download Audit Log",
         data=json.dumps(results, indent=4),
@@ -112,7 +121,7 @@ if st.session_state.results:
 
 
 # ===========================
-# 🧾 CREATE TICKET (FINAL - FIXED EMAIL INPUT)
+# 🧾 CREATE TICKET
 # ===========================
 st.subheader("🧾 Create Ticket")
 
@@ -126,7 +135,6 @@ with col1:
     )
 
 with col2:
-    # 🔥 LOAD CUSTOMER EMAILS FROM DB
     try:
         with open("data/customers.json", "r") as f:
             customers = json.load(f)
@@ -136,7 +144,6 @@ with col2:
 
     customer_email = st.text_input("Customer Email")
 
-    # 🔥 VALIDATION
     if customer_email and customer_email not in valid_emails:
         st.warning("⚠️ Email not found in system. Using default test user.")
         customer_email = valid_emails[0] if valid_emails else customer_email
@@ -158,7 +165,6 @@ if st.button("Create & Process Ticket"):
         "tier": 1
     }
 
-    # 🔥 SAVE CUSTOM TICKET
     try:
         with open("data/tickets.json", "r") as f:
             existing = json.load(f)
@@ -170,7 +176,6 @@ if st.button("Create & Process Ticket"):
     with open("data/tickets.json", "w") as f:
         json.dump(existing, f, indent=4)
 
-    # 🔥 PROCESS
     result = process_ticket(new_ticket)
 
     st.subheader("🔍 Ticket Result")
